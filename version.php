@@ -31,5 +31,6 @@ $plugin->component = 'local_digital_training_account_services';
 $plugin->dependencies = array(
         'logstore_last_viewed_course_module' => ANY_VERSION,
         'logstore_last_updated_course_module' => ANY_VERSION,
-        'local_metadata' => ANY_VERSION,
+	'local_metadata' => ANY_VERSION,
+	'local_metadata_tools' => ANY_VERSION
 );

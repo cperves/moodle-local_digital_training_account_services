@@ -38,17 +38,25 @@ function mod_forum_counter_special_implementation($cmid, $userid) {
     // Search now for new or modified posts since user last visit on this module.
     $sql = 'select d.forum,count(p.id) as unread from {forum_discussions} d inner join {forum_posts} p on d.id=p.discussion
                 where d.forum=:forumid and p.userid <> :userid';
+    $timeconditionsql = ' and ((timeend=0 and timestart=0)'
+        .' or (timeend=0 and timestart<>0 and timestart<=:currenttime1) or (timestart=0 and timeend<>0 and timeend>=:currenttime2)'
+        .' or (timestart<>0 and timeend<>0 and timestart<=:currenttime3 and timeend>=:currenttime4))';
     $groupby = ' GROUP BY d.forum';
+    $currenttime = time();
     $params = array(
-            'userid' => $userid,
-            'forumid' => $forumid,
+        'userid' => $userid,
+        'forumid' => $forumid,
+        'currenttime1' => $currenttime,
+        'currenttime2' => $currenttime,
+        'currenttime3' => $currenttime,
+        'currenttime4' => $currenttime,
     );
     $timesql = '';
     if ($modulelastviewed) {
         $timesql = ' AND p.modified > :lastmodulevisit';
         $params['lastmodulevisit'] = $modulelastviewed->lasttimeviewed;
     }
-    $return = $DB->get_record_sql($sql.$timesql.$groupby, $params);
+    $return = $DB->get_record_sql($sql.$timeconditionsql.$timesql.$groupby, $params);
     if ($return) {
         return $return->unread;
     }

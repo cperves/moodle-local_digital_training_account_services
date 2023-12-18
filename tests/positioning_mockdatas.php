@@ -22,7 +22,19 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace local_digital_training_account_services\tests;
+namespace local_digital_training_account_services;
+use advanced_testcase;
+use coding_exception;
+use grade_item;
+use local_metadata_tools\database\metadata_category;
+use local_metadata_tools\database\metadata_field;
+use local_metadata_tools\database\metadata_value;
+use mod_quiz\structure;
+use question_engine;
+use quiz;
+use quiz_attempt;
+use stdClass;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once(__DIR__.'/../locallib.php');
@@ -103,10 +115,10 @@ class positioning_mockdatas {
     }
 
     private function setUser($userid) {
-        \advanced_testcase::setUser($userid);
+        advanced_testcase::setUser($userid);
     }
     private static function setAdminUser() {
-        \advanced_testcase::setUser(2);
+        advanced_testcase::setUser(2);
     }
 
     public function setup_users() {
@@ -127,7 +139,7 @@ class positioning_mockdatas {
      * create quiz
      * @param $courseid
      * @param $layout array( array(name, int, qtype),)
-     * @throws \coding_exception
+     * @throws coding_exception
      */
     private function create_test_quiz($course, $layout) {
         // Make a quiz.
@@ -161,8 +173,8 @@ class positioning_mockdatas {
                 $lastpage = $page;
             }
         }
-        $quizobj = new \quiz($quiz, $cm, $course);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+        $quizobj = new quiz($quiz, $cm, $course);
+        $structure = structure::create_for_quiz($quizobj);
         if (isset($headings[1])) {
             list($heading, $shuffle) = $this->parse_section_name($headings[1]);
             $sections = $structure->get_sections();
@@ -183,14 +195,14 @@ class positioning_mockdatas {
 
     public function pass_tests_as_positioning() {
         $this->create_positioning_metadata_field();
-        $metadatavalue = new \local_metadata_tools\database\metadata_value();
-        $data = new \stdClass();
+        $metadatavalue = new metadata_value();
+        $data = new stdClass();
         $data->instanceid = $this->get_quiz11()->get_cmid();
         $data->fieldid = $this->metadatafield->get_id();
         $data->data = true;
         $metadatavalue->set_datas($data);
         $metadatavalue->save_datas();
-        $metadatavalue = new \local_metadata_tools\database\metadata_value();
+        $metadatavalue = new metadata_value();
         $data->instanceid = $this->get_quiz21()->get_cmid();
         $metadatavalue->set_datas($data);
         $metadatavalue->save_datas();
@@ -198,7 +210,7 @@ class positioning_mockdatas {
     }
 
     public function attempt_submit($quizobj, $userid) {
-        $quba = \question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
+        $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
         $quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
         $attempts = quiz_get_user_attempts($quizobj->get_quizid(), $userid, 'finished', true);
         $attemptnumber = count($attempts);
@@ -207,7 +219,7 @@ class positioning_mockdatas {
         $attempt = quiz_create_attempt($quizobj, $attemptnumber , false, $timenow, false, $userid);
         quiz_start_new_attempt($quizobj, $quba, $attempt, 1, $timenow);
         quiz_attempt_save_started($quizobj, $quba, $attempt);
-        $attemptobj = \quiz_attempt::create($attempt->id);
+        $attemptobj = quiz_attempt::create($attempt->id);
         get_log_manager(true);
         $this->wait_for_second();
         $timefinish = time();
@@ -217,7 +229,7 @@ class positioning_mockdatas {
 
     public function grade_quiz($cm, $userid, $finalgrade=null, $feedback= '') {
         global $DB;
-        $gradeitem = \grade_item::fetch(array(
+        $gradeitem = grade_item::fetch(array(
                 'itemtype' => 'mod',
                 'itemmodule' => 'quiz',
                 'iteminstance' => $cm->instance,
@@ -262,16 +274,16 @@ class positioning_mockdatas {
     }
 
     private function create_positioning_metadata_field() {
-        $metadatacategory = new \local_metadata_tools\database\metadata_category;
-        $data = new \stdClass();
+        $metadatacategory = new metadata_category;
+        $data = new stdClass();
         $data->contextlevel = CONTEXT_MODULE;
         $data->name = 'category';
         $data->sortorder = 1;
         $data->contextlevel = CONTEXT_MODULE;
         $metadatacategory->set_datas($data);
         $metadatacategory->save_datas();
-        $metadatafield = new \local_metadata_tools\database\metadata_field;
-        $data = new \stdClass();
+        $metadatafield = new metadata_field;
+        $data = new stdClass();
         $data->shortname = 'eolepositioning';
         $data->name = 'Eole positioning';
         $data->datatype = 'checkbox';

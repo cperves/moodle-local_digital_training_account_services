@@ -211,7 +211,7 @@ class local_digital_training_account_services_tools {
         $coursecontext = context_course::instance($course->id);
         $counterhookedmodulesstr = get_config('local_digital_training_account_services', 'counterhookedmodules');
         $counterhookedmodules = explode(',', $counterhookedmodulesstr);
-        $moduleandgroups = json_decode(get_config('local_digital_training_account_services', 'modulegrouped'), true);
+        $moduleandgroups = json_decode(get_config('local_digital_training_account_services', 'modulegrouped') ?? '', true);
         $modulegroups = $moduleandgroups['modulegroups'];
         $groupmodules = $moduleandgroups['groupmodules'];
         $groupcounters = self::init_group_counters($groupmodules);
@@ -365,7 +365,7 @@ class local_digital_training_account_services_tools {
             if (!$cm) {
                 throw new local_digital_training_account_services_exception('positioning_unrecognized_cm');
             }
-            $modulecontext = context_module::instance($cm->id);
+            $modulecontext =  \context_module::instance($cm->id);
             $coursecontext = context_course::instance($cm->course);
             if (is_enrolled(context_course::instance($cm->course), $userid)
                     && has_capability('mod/quiz:attempt', $modulecontext, $userid)
@@ -488,7 +488,7 @@ class local_digital_training_account_services_tools {
         $course = $DB->get_records('course', array('id' => $quizobj->get_cm()->course));
         $attempthistory = array();
         $attempts = quiz_get_user_attempts($quizobj->get_quizid(), $userid, 'finished', true);
-        $context = context_module::instance($quizobj->get_cmid());
+        $context =  \context_module::instance($quizobj->get_cmid());
         $finalattemptfeedback = '';
         $maxattemptgrade = 0;
         $maxattemptgradefeedback = '';

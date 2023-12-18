@@ -22,7 +22,9 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace local_digital_training_account_services\tests;
+namespace local_digital_training_account_services;
+use advanced_testcase;
+use context_system;
 use core_competency\api;
 use core_competency\evidence;
 
@@ -154,10 +156,10 @@ class competencies_mockdatas {
     }
 
     private function setUser($userid) {
-        \advanced_testcase::setUser($userid);
+        advanced_testcase::setUser($userid);
     }
     private static function setAdminUser() {
-        \advanced_testcase::setUser(2);
+        advanced_testcase::setUser(2);
     }
 
     public function initiate_tests() {
@@ -218,7 +220,7 @@ class competencies_mockdatas {
 
     public function enrol_users() {
         global $DB;
-        $systemcontext = \context_system::instance();
+        $systemcontext = context_system::instance();
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
         // Add a capability for gradable.
         assign_capability('moodle/competency:coursecompetencygradable', CAP_ALLOW,

@@ -22,7 +22,17 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace local_digital_training_account_services\tests;
+namespace local_digital_training_account_services;
+use advanced_testcase;
+use calendar_event;
+use completion_info;
+use context_module;
+use context_user;
+use core\event\course_module_updated;
+use grade_grade;
+use grade_item;
+use stdClass;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__.'/../locallib.php');
 
@@ -63,10 +73,10 @@ class mockdatas {
     }
 
     private function setUser($userid) {
-        \advanced_testcase::setUser($userid);
+        advanced_testcase::setUser($userid);
     }
     private static function setAdminUser() {
-        \advanced_testcase::setUser(2);
+        advanced_testcase::setUser(2);
     }
 
     public function setup_users() {
@@ -75,7 +85,7 @@ class mockdatas {
     }
 
     public static function create_user_action_event($userid, $timestart = null) {
-        $event = new \stdClass();
+        $event = new stdClass();
         $event->name = 'Calendar event';
         $event->modulename  = '';
         $event->courseid = 0;
@@ -89,8 +99,8 @@ class mockdatas {
             $event->timestart = time() + 86400;
         }
         $event->timesort = $event->timestart;
-        $event->context = \context_user::instance($userid);
-        return \calendar_event::create($event);
+        $event->context = context_user::instance($userid);
+        return calendar_event::create($event);
     }
 
     public function set_log_store() {
@@ -109,10 +119,10 @@ class mockdatas {
 
     public function create_modules($options = array()) {
         $this->resource1 = $this->getDataGenerator()->create_module('resource', array('course' => $this->course1) + $options);
-        $this->resourcecontext1 = \context_module::instance($this->resource1->cmid);
+        $this->resourcecontext1 =  context_module::instance($this->resource1->cmid);
         $this->cmresource1 = get_coursemodule_from_instance('resource', $this->resource1->id);
         $this->resource2 = $this->getDataGenerator()->create_module('resource', array('course' => $this->course1) + $options);
-        $this->resourcecontext2 = \context_module::instance($this->resource2->cmid);
+        $this->resourcecontext2 =  context_module::instance($this->resource2->cmid);
         $this->cmresource2 = get_coursemodule_from_instance('resource', $this->resource2->id);
         $this->forum1 = $this->getDataGenerator()->create_module('forum',
                 array('course' => $this->course1, 'trackingtype' => FORUM_TRACKING_FORCED) + $options);
@@ -155,40 +165,40 @@ class mockdatas {
         global $DB;
         $this->cmresource1->deletioninprogress = 1;
         $DB->update_record('course_modules', $this->cmresource1);
-        $event = \core\event\course_module_updated::create_from_cm($this->cmresource1);
+        $event = course_module_updated::create_from_cm($this->cmresource1);
         $event->trigger();
         $this->cmresource2->deletioninprogress = 1;
         $DB->update_record('course_modules', $this->cmresource2);
-        $event = \core\event\course_module_updated::create_from_cm($this->cmresource2);
+        $event = course_module_updated::create_from_cm($this->cmresource2);
         $event->trigger();
         $this->cmforum1->deletioninprogress = 1;
         $DB->update_record('course_modules', $this->cmforum1);
-        $event = \core\event\course_module_updated::create_from_cm($this->cmforum1);
+        $event = course_module_updated::create_from_cm($this->cmforum1);
         $event->trigger();
         $this->cmforum2->deletioninprogress = 1;
         $DB->update_record('course_modules', $this->cmforum2);
-        $event = \core\event\course_module_updated::create_from_cm($this->cmforum2);
+        $event = course_module_updated::create_from_cm($this->cmforum2);
         $event->trigger();
         $this->cmchat1->deletioninprogress = 1;
         $DB->update_record('course_modules', $this->cmchat1);
-        $event = \core\event\course_module_updated::create_from_cm($this->cmchat1);
+        $event = course_module_updated::create_from_cm($this->cmchat1);
         $event->trigger();
         $this->cmdata1->deletioninprogress = 1;
         $DB->update_record('course_modules', $this->cmdata1);
-        $event = \core\event\course_module_updated::create_from_cm($this->cmdata1);
+        $event = course_module_updated::create_from_cm($this->cmdata1);
         $event->trigger();
         get_log_manager(true); // To trigger events.
     }
 
     private function populate_forum($forum, $course) {
         // Add discussions to course  started by user1.
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->course = $course->id;
         $record->userid = $this->user1->id;
         $record->forum = $forum->id;
         $discussion = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
         // Add post to course by user2.
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->course = $course->id;
         $record->userid = $this->user2->id;
         $record->forum = $forum->id;
@@ -220,8 +230,8 @@ class mockdatas {
     }
 
     public static function grade_course($userid, $courseid, $grade, $maxgrade=100, $mingrade=0) {
-        $coursegradeitem = \grade_item::fetch_course_item($courseid);
-        $gradegrade = new \grade_grade();
+        $coursegradeitem = grade_item::fetch_course_item($courseid);
+        $gradegrade = new grade_grade();
         $gradegrade->itemid = $coursegradeitem->id;
         $gradegrade->userid = $userid;
         $gradegrade->rawgrade = $grade;
@@ -235,7 +245,7 @@ class mockdatas {
 
 
     public static function create_course_action_event($courseid, $moduleinstanceid, $modulename, $timestart = null) {
-        $event = new \stdClass();
+        $event = new stdClass();
         $event->name = 'Calendar event';
         $event->modulename  = $modulename;
         $event->courseid = $courseid;
@@ -249,7 +259,7 @@ class mockdatas {
         }
         $event->timesort = $event->timestart;
 
-        return \calendar_event::create($event);
+        return calendar_event::create($event);
     }
 
     public function setup_externallib_datas() {
@@ -270,7 +280,7 @@ class mockdatas {
 
         $this->setUser($this->user2->id);
         // Completion.
-        $completion = new \completion_info($this->course1);
+        $completion = new completion_info($this->course1);
         $completion->update_state($this->cmresource1, COMPLETION_COMPLETE, $this->user2->id);
         $completion->update_state($this->cmresource2, COMPLETION_COMPLETE, $this->user2->id);
         set_config('courseviewreinit', 1, 'local_digital_training_account_services');

@@ -22,16 +22,22 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
 require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/mockdatas.php');
-use local_digital_training_account_services\tests\mockdatas;
 
-class local_digital_training_account_services_externallib_testcase extends externallib_advanced_testcase{
+use context_system;
+use external_api;
+use externallib_advanced_testcase;
+use local_digital_training_account_services\mockdatas;
+use local_digital_training_account_services_external;
+use required_capability_exception;
+
+class externallib_test extends externallib_advanced_testcase{
 
     public function test_get_courses_infos_externallib() {
         $this->setup_datas();
@@ -63,15 +69,14 @@ class local_digital_training_account_services_externallib_testcase extends exter
 
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_get_courses_infos_externallib_missing_capability() {
         $this->setAdminUser();
         $this->setup_datas();
         $this->mockdatas->setup_externallib_datas();
         $testuser = $this->getDataGenerator()->create_user();
         $this->setUser($testuser);
+        $this->expectException(required_capability_exception::class);
+        $this->expectExceptionMessage('Sorry, but you do not currently have permissions to do that (user can access to course list for other user).');
         local_digital_training_account_services_external::get_courses_infos($this->mockdatas->get_user2()->username);
     }
 
@@ -85,7 +90,7 @@ class local_digital_training_account_services_externallib_testcase extends exter
         $testuser = $this->getDataGenerator()->create_user();
         // Add first required capability.
         assign_capability('local/digital_training_account_services:course_list_informations_for_other_user', CAP_ALLOW,
-                $rolewsid, $systemcontext->id, true);
+            $rolewsid, $systemcontext->id, true);
         role_assign($rolewsid, $testuser->id, $systemcontext->id);
         accesslib_clear_all_caches_for_unit_testing();
         $this->setUser($testuser);
@@ -127,9 +132,9 @@ class local_digital_training_account_services_externallib_testcase extends exter
         $this->assertCount(1, $courseinfo['roles']);
         $this->assertEquals('student', array_shift($courseinfo['roles']));
         $this->assertCount(3, $courseinfo['groupedModulesCounters']);
-        $this->assertContains('other', array_keys($courseinfo['groupedModulesCounters']));
-        $this->assertContains('msg', array_keys($courseinfo['groupedModulesCounters']));
-        $this->assertContains('resource', array_keys($courseinfo['groupedModulesCounters']));
+        $groupedModulesCounterselt = $courseinfo['groupedModulesCounters'][0];
+        $this->assertContains('groupName', array_keys($groupedModulesCounterselt));
+        $this->assertContains('count', array_keys($groupedModulesCounterselt));
         $this->assertContains('finalGrade', array_keys($courseinfo['courseGrade']));
         $this->assertContains('maxGrade', array_keys($courseinfo['courseGrade']));
         $this->assertContains('percentage', array_keys($courseinfo['completion']));

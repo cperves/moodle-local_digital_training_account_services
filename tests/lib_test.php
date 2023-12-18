@@ -22,16 +22,25 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
 require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/mockdatas.php');
-use local_digital_training_account_services\tests\mockdatas;
 
-class local_digital_training_account_services_testcase extends advanced_testcase{
+use advanced_testcase;
+use completion_info;
+use context_course;
+use context_module;
+use core\event\course_module_updated;
+use core\event\course_viewed;
+use local_digital_training_account_services\mockdatas;
+use local_digital_training_account_services_tools;
+use mod_chat\event\course_module_viewed;
+
+class lib_test extends advanced_testcase{
     const MODULE_GROUPED_WELL_FORMATTED = '{"groupmodules": {"resource" : ["resource"], "msg" : ["forum"]} , '
     .'"modulegroups" : {"resource" : ["resource"], "forum" : ["msg"]}}';
 
@@ -62,13 +71,13 @@ class local_digital_training_account_services_testcase extends advanced_testcase
             $this->mockdatas->get_resource1(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource1(),
-            context_module::instance($this->mockdatas->get_resource1()->cmid)
+             context_module::instance($this->mockdatas->get_resource1()->cmid)
         );
         resource_view(
             $this->mockdatas->get_resource2(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource2(),
-            context_module::instance($this->mockdatas->get_resource2()->cmid)
+             context_module::instance($this->mockdatas->get_resource2()->cmid)
         );
         // Trigger associated events.
         get_log_manager(true);
@@ -83,9 +92,9 @@ class local_digital_training_account_services_testcase extends advanced_testcase
         // User 1 changed cm1 and cm2.
         $this->waitForSecond();
         $this->setUser($this->setUser($this->mockdatas->get_user1()->id));
-        $event = \core\event\course_module_updated::create_from_cm($this->mockdatas->get_cmresource1());
+        $event = course_module_updated::create_from_cm($this->mockdatas->get_cmresource1());
         $event->trigger();
-        $event = \core\event\course_module_updated::create_from_cm($this->mockdatas->get_cmresource2());
+        $event = course_module_updated::create_from_cm($this->mockdatas->get_cmresource2());
         $event->trigger();
         // Trigger associated events.
         get_log_manager(true);
@@ -95,7 +104,7 @@ class local_digital_training_account_services_testcase extends advanced_testcase
         resource_view($this->mockdatas->get_resource1(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource1(),
-            context_module::instance($this->mockdatas->get_resource1()->cmid)
+             context_module::instance($this->mockdatas->get_resource1()->cmid)
         );
         get_log_manager(true);
         $this->assertFalse(
@@ -124,12 +133,12 @@ class local_digital_training_account_services_testcase extends advanced_testcase
             $this->mockdatas->get_resource1(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource1(),
-            context_module::instance($this->mockdatas->get_resource1()->cmid)
+             context_module::instance($this->mockdatas->get_resource1()->cmid)
         );
         resource_view($this->mockdatas->get_resource2(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource2(),
-            context_module::instance($this->mockdatas->get_resource2()->cmid)
+             context_module::instance($this->mockdatas->get_resource2()->cmid)
         );
         // Flush events.
         get_log_manager(true);
@@ -181,19 +190,19 @@ class local_digital_training_account_services_testcase extends advanced_testcase
             $this->mockdatas->get_resource1(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource1(),
-            context_module::instance($this->mockdatas->get_resource1()->cmid)
+             context_module::instance($this->mockdatas->get_resource1()->cmid)
         );
         $params = array(
             'objectid' => $this->mockdatas->get_chat1()->id,
-            'context' => context_module::instance($this->mockdatas->get_chat1()->cmid)
+            'context' =>  context_module::instance($this->mockdatas->get_chat1()->cmid)
         );
-        $event = \mod_chat\event\course_module_viewed::create($params);
+        $event = course_module_viewed::create($params);
         $event->trigger();
         $params = array(
             'objectid' => $this->mockdatas->get_forum1()->id,
-            'context' => context_module::instance($this->mockdatas->get_forum1()->cmid)
+            'context' =>  context_module::instance($this->mockdatas->get_forum1()->cmid)
         );
-        $event = \mod_chat\event\course_module_viewed::create($params);
+        $event = course_module_viewed::create($params);
         $event->trigger();
         get_log_manager(true); // Reload to trigger events.
         $groupedmodules =
@@ -233,19 +242,19 @@ class local_digital_training_account_services_testcase extends advanced_testcase
             $this->mockdatas->get_resource1(),
             $this->mockdatas->get_course1(),
             $this->mockdatas->get_cmresource1(),
-            context_module::instance($this->mockdatas->get_resource1()->cmid)
+             context_module::instance($this->mockdatas->get_resource1()->cmid)
         );
         $params = array(
             'objectid' => $this->mockdatas->get_chat1()->id,
-            'context' => context_module::instance($this->mockdatas->get_chat1()->cmid)
+            'context' =>  context_module::instance($this->mockdatas->get_chat1()->cmid)
         );
-        $event = \mod_chat\event\course_module_viewed::create($params);
+        $event = course_module_viewed::create($params);
         $event->trigger();
         $params = array(
             'objectid' => $this->mockdatas->get_forum1()->id,
             'context' => context_module::instance($this->mockdatas->get_forum1()->cmid)
         );
-        $event = \mod_chat\event\course_module_viewed::create($params);
+        $event = course_module_viewed::create($params);
         $event->trigger();
         get_log_manager(true); // Reload to trigger events.
         // Pass modules to deletioninprogress.
@@ -329,7 +338,7 @@ class local_digital_training_account_services_testcase extends advanced_testcase
         $eventparams = array(
             'context' => context_course::instance($this->mockdatas->get_course1()->id)
         );
-        \core\event\course_viewed::create($eventparams)->trigger();
+        course_viewed::create($eventparams)->trigger();
         get_log_manager(true);
         $groupedmodules =
             local_digital_training_account_services_tools::get_course_counters_grouped(
@@ -340,7 +349,7 @@ class local_digital_training_account_services_testcase extends advanced_testcase
         }
         $this->waitForSecond();
         set_config('courseviewreinit', 1, 'local_digital_training_account_services');
-        \core\event\course_viewed::create($eventparams)->trigger();
+        course_viewed::create($eventparams)->trigger();
         get_log_manager(true);
         $groupedmodules =
             local_digital_training_account_services_tools::get_course_counters_grouped(

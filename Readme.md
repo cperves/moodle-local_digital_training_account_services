@@ -37,4 +37,3 @@ sudo -u www-data /usr/bin/php /var/www/moodle/local/metadata_tools/cli/add_metad
 ```
 * Don't forget to activate metadatas for module plugins from moodle administration 
 
-

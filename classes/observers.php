@@ -75,7 +75,7 @@ class observers {
             require_once($CFG->dirroot . '/mod/forum/classes/event/discussion_created.php');
             require_once($CFG->dirroot . '/mod/forum/classes/event/post_created.php');
             if (!$event instanceof \mod_forum\event\discussion_created && !$event instanceof \mod_forum\event\post_created ) {
-                print_error('discussion_or_post_created error : event is not an isntance of discussion_created or post_created');
+                throw new moodle_exception('discussion_or_post_created error : event is not an isntance of discussion_created or post_created');
             }
             self::create_or_update_lastupdated($event);
         }
@@ -88,7 +88,7 @@ class observers {
             require_once($CFG->dirroot . '/mod/forum/classes/event/discussion_updated.php');
             require_once($CFG->dirroot . '/mod/forum/classes/event/post_updated.php');
             if (!$event instanceof \mod_forum\event\discussion_updated && !$event instanceof \mod_forum\event\post_updated ) {
-                print_error('discussion_or_post_created error : event is not an isntance of discussion_created or post_created');
+                throw new moodle_exception('discussion_or_post_created error : event is not an isntance of discussion_created or post_created');
             }
             self::create_or_update_lastupdated($event);
         }

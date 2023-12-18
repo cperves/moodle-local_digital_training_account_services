@@ -22,16 +22,23 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
 require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/mockdatas.php');
-use local_digital_training_account_services\tests\mockdatas;
 
-class local_digital_training_account_services_forum_counters_testcase extends advanced_testcase{
+use advanced_testcase;
+use context_module;
+use local_digital_training_account_services\mockdatas;
+use local_digital_training_account_services_tools;
+use mod_forum\event\course_module_viewed;
+use mod_forum\event\discussion_created;
+use stdClass;
+
+class forum_counters_test extends advanced_testcase{
     const MODULE_GROUPED_CONFIG_WELL_FORMATTED = '{"groupmodules": {"resource" : ["resource"], "msg" : ["forum"]} , '
     .'"modulegroups" : {"resource" : ["resource"], "forum" : ["msg"]}}';
 
@@ -178,18 +185,18 @@ class local_digital_training_account_services_forum_counters_testcase extends ad
     private function create_discussion($user, $forum) {
         $this->waitForSecond();
         // User 1 add new discussion in forum.
-        $record = new stdClass();
+        $record = new  stdClass();
         $record->course = $forum->course;
         $record->userid = $user->id;
         $record->forum = $forum->id;
         $record = $this->getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
         // Trigger event.
         $eventparams = array(
-            'context' => context_module::instance($this->mockdatas->get_forum1()->cmid),
+            'context' =>  context_module::instance($this->mockdatas->get_forum1()->cmid),
             'other' => array('forumid' => $this->mockdatas->get_forum1()->id),
             'objectid' => $record->id
         );
-        \mod_forum\event\discussion_created::create($eventparams)->trigger();
+        discussion_created::create($eventparams)->trigger();
         get_log_manager(true); // Reload to trigger events.
         return $record;
     }
@@ -206,9 +213,9 @@ class local_digital_training_account_services_forum_counters_testcase extends ad
     private function view_forum($forum) {
         $params = array(
             'objectid' => $forum->id,
-            'context' => context_module::instance($forum->cmid)
+            'context' =>  context_module::instance($forum->cmid)
         );
-        $event = \mod_forum\event\course_module_viewed::create($params);
+        $event = course_module_viewed::create($params);
         $event->trigger();
     }
 }

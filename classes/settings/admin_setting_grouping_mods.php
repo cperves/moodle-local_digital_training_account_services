@@ -34,7 +34,7 @@ class admin_setting_grouping_mods extends \admin_setting_configtext {
      * @return mixed|string|void
      */
     public function write_setting($data) {
-        $groups = json_decode($data, true);
+        $groups = json_decode($data ?? '', true);
         $modgroups = array();
         foreach ($groups as $groupname => $groupmodules) {
             foreach ($groupmodules as $groupmodule) {
@@ -55,8 +55,12 @@ class admin_setting_grouping_mods extends \admin_setting_configtext {
 
     public function output_html($data, $query= '') {
         // Retrieve only one part of stored object to display.
-        $dataarray = json_decode($data, true);
-        $data = json_encode($dataarray['groupmodules']);
+        $dataarray = json_decode($data ?? '', true);
+        $data = (
+            array_key_exists('groupmodules', $dataarray) ?
+                json_encode($dataarray['groupmodules'])
+                : (!is_null($data) &&  !empty($data) && is_string($data) ? $data:'')
+        );
         return parent::output_html($data, $query);
     }
 }

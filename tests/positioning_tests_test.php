@@ -22,7 +22,7 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
@@ -30,10 +30,16 @@ require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/positioning_mockdatas.php');
 require_once($CFG->dirroot.'/local/metadata_tools/tests/mockdatas.php');
-use local_digital_training_account_services\tests\positioning_mockdatas;
-use local_metadata_tools\tests\mockdatas;
 
-class local_digital_training_account_services_positioning_tests_testcase extends advanced_testcase{
+use advanced_testcase;
+use context_module;
+use local_digital_training_account_services\positioning_mockdatas;
+use local_digital_training_account_services_tools;
+use local_metadata_tools\database\metadata_value;
+use local_metadata_tools\mockdatas;
+use stdClass;
+
+class positioning_tests_test extends advanced_testcase{
 
     private $positioningmockdatas;
     private $metadatasmockdatas;
@@ -125,8 +131,8 @@ class local_digital_training_account_services_positioning_tests_testcase extends
         $user2tests = local_digital_training_account_services_tools::get_positionning_tests_for_user(
                 $this->positioningmockdatas->get_user2()->id);
         $this->assertCount(2, $user2tests);
-        $this->assertContains($this->positioningmockdatas->get_quiz11()->get_cmid(), array_keys($user2tests));
-        $this->assertContains($this->positioningmockdatas->get_quiz21()->get_cmid(), array_keys($user2tests));
+        $this->assertContains((int)$this->positioningmockdatas->get_quiz11()->get_cmid(), array_keys($user2tests));
+        $this->assertContains((int)$this->positioningmockdatas->get_quiz21()->get_cmid(), array_keys($user2tests));
         $this->check_result_structure($user2tests[$this->positioningmockdatas->get_quiz11()->get_cmid()]);
         $this->check_result_structure($user2tests[$this->positioningmockdatas->get_quiz21()->get_cmid()]);
 
@@ -144,8 +150,8 @@ class local_digital_training_account_services_positioning_tests_testcase extends
         $this->create_metadatas_values(
             $this->positioningmockdatas->get_quiz11()->get_cmid(), $metadatafielddomain, 'domain1;domain2;domain3');
         get_log_manager(true); // Trigger all events.
-        $quiz11context = context_module::instance($this->positioningmockdatas->get_quiz11()->get_cmid());
-        $quiz21context = context_module::instance($this->positioningmockdatas->get_quiz21()->get_cmid());
+        $quiz11context =  context_module::instance($this->positioningmockdatas->get_quiz11()->get_cmid());
+        $quiz21context =  context_module::instance($this->positioningmockdatas->get_quiz21()->get_cmid());
         $metadatas = local_digital_training_account_services_tools::get_metadatas_values(
             $quiz11context->id, 'eole', array(), ['eolepositioning']);
         $this->check_metatadas_result_structure($metadatas);
@@ -163,8 +169,8 @@ class local_digital_training_account_services_positioning_tests_testcase extends
 
 
     private function create_metadatas_values($cmid, $metadatafield, $value) {
-        $metadatavalueinstitution = new \local_metadata_tools\database\metadata_value;
-        $data = new stdClass();
+        $metadatavalueinstitution = new metadata_value;
+        $data = new  stdClass();
         $data->instanceid = $cmid;
         $data->fieldid = $metadatafield->get_id();
         $data->data = $value;

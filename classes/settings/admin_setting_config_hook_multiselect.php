@@ -31,7 +31,7 @@ class admin_setting_config_hook_multiselect extends \admin_setting_configmultise
         global $CFG;
         $hookfile = $CFG->dirroot.'/'.$hookfilerelativepath;
         $functionpattern = '/([a-z]+_[a-z]+)'.$functionsuffixe.'/';// Plugintype_plugin_name_functionsuffixe.
-        $functionreader = new\local_digital_training_account_services\FunctionPatternFileReader($hookfile);
+        $functionreader = new \local_digital_training_account_services\FunctionPatternFileReader($hookfile);
         $functions = $functionreader->filter_function_with_pattern($functionpattern);
         $choices = array();
         foreach ($functions as $currentfunction) {
@@ -57,7 +57,7 @@ class admin_setting_config_hook_multiselect extends \admin_setting_configmultise
 
     public function write_setting($data) {
         if (!$this->load_choices() or empty($this->choices)) {
-            return ($this->config_write($this->name, $data) ? '' : get_string('errorsetting', 'admin'));
+            return ($this->config_write($this->name, '') ? '' : get_string('errorsetting', 'admin'));
         } else {
             return parent::write_setting($data);
         }

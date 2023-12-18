@@ -22,14 +22,17 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
+use advanced_testcase;
+use local_digital_training_account_services\settings\admin_setting_config_hook_multiselect;
+
 require_once(__DIR__.'/../locallib.php');
 
-class local_digital_training_account_services_admin_settings_testcase extends advanced_testcase{
+class admin_settings_test extends advanced_testcase{
     public function test_admin_setting_config_hook_multiselect_counter_hook() {
         global $CFG;
         require_once($CFG->libdir.'/adminlib.php');
-        $setting = new \local_digital_training_account_services\settings\admin_setting_config_hook_multiselect(
+        $setting = new admin_setting_config_hook_multiselect(
             'local_digital_training_account_services/counterhookedmodules',
             get_string('counterhookedmodules', 'local_digital_training_account_services'),
             get_string('counterhookedmodules_desc', 'local_digital_training_account_services'),
@@ -46,7 +49,7 @@ class local_digital_training_account_services_admin_settings_testcase extends ad
     public function test_admin_setting_config_hook_multiselect_courseview_hook() {
         global $CFG;
         require_once($CFG->libdir.'/adminlib.php');
-        $setting = new \local_digital_training_account_services\settings\admin_setting_config_hook_multiselect(
+        $setting = new admin_setting_config_hook_multiselect(
             'local_digital_training_account_services/counterhookedmodules',
             get_string('courseviewhookedmodules', 'local_digital_training_account_services'),
             get_string('courseviewhookedmodules_desc', 'local_digital_training_account_services'),

@@ -22,7 +22,7 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
@@ -30,10 +30,15 @@ require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/competencies_mockdatas.php');
 require_once($CFG->dirroot.'/local/metadata_tools/tests/mockdatas.php');
-use local_digital_training_account_services\tests\competencies_mockdatas;
-use core_competency\api;
 
-class local_digital_training_account_services_competencies_testcase extends advanced_testcase{
+use advanced_testcase;
+use context_system;
+use local_digital_training_account_services\competencies_mockdatas;
+use core_competency\api;
+use local_digital_training_account_services_tools;
+use required_capability_exception;
+
+class competencies_test extends advanced_testcase{
 
     private $competenciesmockdatas;
     public function test_get_competencies_for_user() {
@@ -78,38 +83,25 @@ class local_digital_training_account_services_competencies_testcase extends adva
         $this->assertEquals("Note", $competency1['lastEvidenceNote']);
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_get_competencies_for_capa_course_list_informations_for_other_user() {
         $this->setup_datas();
         $this->competenciesmockdatas->grade_competencies();
-        $systemcontext = context_system::instance();
-        $newroleid = $this->getDataGenerator()->create_role('newrole');
         $testuser = $this->getDataGenerator()->create_user();
         // Add first required capability.
-        assign_capability('local/digital_training_account_services:course_list_informations_for_other_user',
-            CAP_ALLOW,
-            $newroleid, $systemcontext->id, true);
-        role_assign($newroleid, $testuser->id, $systemcontext->id);
         $this->setUser($testuser);
+        $this->expectException(required_capability_exception::class);
+        $this->expectExceptionMessage("Sorry, but you do not currently have permissions to do that (user can access to course list for other user).");
         $competencies = local_digital_training_account_services_tools::get_competencies_for_user(
             $this->competenciesmockdatas->get_userstudent()->id);
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_get_competencies_for_capa_usercompetencyview() {
         $this->setup_datas();
         $this->competenciesmockdatas->grade_competencies();
-        $systemcontext = context_system::instance();
-        $newroleid = $this->getDataGenerator()->create_role('newrole');
         $testuser = $this->getDataGenerator()->create_user();
         // Add first required capability.
-        assign_capability('local/digital_training_account_services:course_list_informations_for_other_user', CAP_ALLOW,
-                $newroleid, $systemcontext->id, true);
-        role_assign($newroleid, $testuser->id, $systemcontext->id);
+        $this->expectException(required_capability_exception::class);
+        $this->expectExceptionMessage('Sorry, but you do not currently have permissions to do that (user can access to course list for other user).');
         $this->setUser($testuser);
         local_digital_training_account_services_tools::get_competencies_for_user(
             $this->competenciesmockdatas->get_userstudent()->id);

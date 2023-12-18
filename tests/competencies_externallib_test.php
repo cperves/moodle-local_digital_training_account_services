@@ -22,7 +22,7 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
@@ -30,10 +30,15 @@ require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/competencies_mockdatas.php');
 require_once($CFG->dirroot.'/local/metadata_tools/tests/mockdatas.php');
-use local_digital_training_account_services\tests\competencies_mockdatas;
-use core_competency\api;
 
-class local_digital_training_account_services_competencies_externallib_testcase extends advanced_testcase{
+use advanced_testcase;
+use context_system;
+use external_api;
+use local_digital_training_account_services\competencies_mockdatas;
+use core_competency\api;
+use local_digital_training_account_services_external;
+
+class competencies_externallib_test extends advanced_testcase{
 
     private $competenciesmockdatas;
     public function test_get_competencies_for_user() {

@@ -22,16 +22,23 @@
  * @author  Céline Pervès <cperves@unistra.fr>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+namespace local_digital_training_account_services;
 global $CFG;
 
 require_once(__DIR__.'/../locallib.php');
 require_once(__DIR__.'/../externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 require_once($CFG->dirroot.'/local/digital_training_account_services/tests/positioning_mockdatas.php');
-use local_digital_training_account_services\tests\positioning_mockdatas;
 
-class local_digital_training_account_services_positioning_tests_externallib_testcase extends externallib_advanced_testcase{
+use context_system;
+use external_api;
+use externallib_advanced_testcase;
+use local_digital_training_account_services\positioning_mockdatas;
+use local_digital_training_account_services_exception;
+use local_digital_training_account_services_external;
+use required_capability_exception;
+
+class positioning_tests_externallib_test extends externallib_advanced_testcase{
     private $positioningmockdatas;
     public function test_get_positioning_tests_externallib() {
         $this->setup_datas();
@@ -48,9 +55,6 @@ class local_digital_training_account_services_positioning_tests_externallib_test
         $this->check_result_structure($positioningtest);
     }
 
-    /**
-     * @expectedException required_capability_exception
-     */
     public function test_get_positioning_tests_externallib_missing_capability() {
         $this->setup_datas();
         $this->positioningmockdatas->create_courses();
@@ -58,7 +62,10 @@ class local_digital_training_account_services_positioning_tests_externallib_test
         $this->positioningmockdatas->create_tests();
         $this->positioningmockdatas->pass_tests_as_positioning();
         $testuser = $this->getDataGenerator()->create_user();
+        $systemcontext = context_system::instance();
         $this->setUser($testuser);
+        $this->expectException(required_capability_exception::class);
+        $this->expectExceptionMessage('Sorry, but you do not currently have permissions to do that (user can access to positioning test list for other user).');
         $positioningtests = local_digital_training_account_services_external::get_positioning_tests(
             $this->positioningmockdatas->get_user2()->username);
         $positioningtests = external_api::clean_returnvalue(
@@ -66,9 +73,7 @@ class local_digital_training_account_services_positioning_tests_externallib_test
         $this->assertCount(2, $positioningtests);
     }
 
-    /**
-     * @expectedException local_digital_training_account_services_exception
-     */
+
     public function test_empty_positioning_metadata_field() {
         global $CFG;
         require_once($CFG->libdir.'/adminlib.php');
@@ -77,8 +82,18 @@ class local_digital_training_account_services_positioning_tests_externallib_test
         $this->positioningmockdatas->enrol_users();
         $this->positioningmockdatas->create_tests();
         $this->positioningmockdatas->pass_tests_as_positioning();
+        $newroleid = $this->getDataGenerator()->create_role('newrole');
+        $testuser = $this->getDataGenerator()->create_user();
+        $systemcontext = context_system::instance();
+        assign_capability('local/digital_training_account_services:positioning_tests_list_informations_for_other_user',
+            CAP_ALLOW,
+            $newroleid, $systemcontext->id, true);
+        role_assign($newroleid, $testuser->id, $systemcontext->id);
+        $this->setUser($testuser);
         set_config('positioning_metadata_field', '', 'local_digital_training_account_services');
         get_log_manager(true);
+        $this->expectException(local_digital_training_account_services_exception::class);
+        $this->expectExceptionMessage("empty_positioning_metadatafield");
         local_digital_training_account_services_external::get_positioning_tests($this->positioningmockdatas->get_user2()->username);
     }
 

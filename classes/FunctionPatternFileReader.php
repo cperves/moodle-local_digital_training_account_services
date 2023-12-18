@@ -54,7 +54,7 @@ class FunctionPatternFileReader{
         if (isset($this->functionpattern)) {
             foreach ($this->innerfilefunctions as $innerfilefunction) {
                 $matches = array();
-                if ( preg_match($this->functionpattern, $innerfilefunction, $matches) === 1) {
+                if ( preg_match($this->functionpattern, $innerfilefunction ?? '', $matches) === 1) {
                     if (count($matches) == 2) {
                         $this->filteredfunctions[] = $matches[1];
                     }
